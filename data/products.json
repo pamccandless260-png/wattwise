@@ -1,0 +1,9 @@
+{
+  "updated": "2026-01-01T00:00:00+00:00",
+  "products": [
+    {"id": "sample-a-300", "sample": true, "brand": "SampleBrand", "name": "A300", "price": 249, "watt_hours": 300, "output_watts": 300, "weight_lbs": 8, "chemistry": "LiFePO4", "solar_input_watts": 100, "url": "https://example.com/a300"},
+    {"id": "sample-b-700", "sample": true, "brand": "SampleBrand", "name": "B700", "price": 449, "watt_hours": 700, "output_watts": 800, "weight_lbs": 17, "chemistry": "LiFePO4", "solar_input_watts": 200, "url": "https://example.com/b700"},
+    {"id": "sample-c-1200", "sample": true, "brand": "SampleBrand", "name": "C1200", "price": 899, "watt_hours": 1200, "output_watts": 1800, "weight_lbs": 32, "chemistry": "LiFePO4", "solar_input_watts": 400, "url": "https://example.com/c1200"},
+    {"id": "sample-d-2000", "sample": true, "brand": "SampleBrand", "name": "D2000", "price": 1499, "watt_hours": 2000, "output_watts": 2400, "weight_lbs": 48, "chemistry": "LiFePO4", "solar_input_watts": 800, "url": "https://example.com/d2000"}
+  ]
+}
