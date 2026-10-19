@@ -6,19 +6,20 @@
 <title>$title</title>
 <meta name="description" content="$description">
 <link rel="canonical" href="$canonical">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e2a47'/%3E%3Cpath d='M18 5 8 18h7l-2 9 11-14h-7z' fill='%23ffc933'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<header class="top">
-  <a class="brand" href="/">$site_name</a>
+<header class="top"><div class="wrap">
+  <a class="brand" href="/">$logo<span>$site_name</span></a>
   <nav>$nav</nav>
-</header>
-<main>
+</div></header>
+<main class="wrap">
 $body
 </main>
-<footer>
-  <p>Prices and specs last checked $updated. Prices change often, so confirm on the seller's page before buying.</p>
-  <p>$site_name earns a commission when you buy through links on this site, at no extra cost to you. <a href="/disclosure/">Details</a>.</p>
-</footer>
+<footer><div class="wrap">
+  <p>Prices and specs last checked $updated.</p>
+  <p>$site_name earns a commission when you buy through links on this site, at no extra cost to you. <a href="/disclosure/">Affiliate disclosure</a> · <a href="/how-we-rank/">How we rank</a></p>
+</div></footer>
 </body>
 </html>

@@ -10,30 +10,58 @@ OUT = ROOT / "dist"
 cfg = json.loads((ROOT / "config.json").read_text())
 raw = json.loads((ROOT / "data" / "products.json").read_text())
 BASE = Template((ROOT / "templates" / "base.html").read_text())
-SITE = cfg["site_name"]
-URL = cfg["base_url"].rstrip("/")
+SITE, URL = cfg["site_name"], cfg["base_url"].rstrip("/")
 UPDATED = datetime.fromisoformat(raw["updated"]).strftime("%B %-d, %Y")
+PRICE_NOTE = raw.get("price_note", "Prices are list prices and change often.")
 
 products = raw["products"]
 for p in products:
     p["price_per_wh"] = p["price"] / p["watt_hours"]
-    p["slug"] = p["id"]
-by_id = {p["id"]: p for p in products}
+    p["full"] = f'{p["brand"]} {p["name"]}'
+MAX_WH = max(p["watt_hours"] for p in products)
 has_sample = any(p.get("sample") for p in products)
+
+# typical average draw in watts
+DEVICES = [("Wi-Fi router", 10), ("LED lights", 20), ("Laptop", 60), ("Mini fridge", 60),
+           ("TV", 100), ("Power drill", 600), ("Kettle", 1500)]
+DEFAULT_W = 60
+EFF = 0.85  # rough inverter and conversion losses
 
 e = html.escape
 money = lambda x: f"${x:,.0f}"
 cents = lambda x: f"${x:,.2f}"
-pages = []  # paths for sitemap
+pages = []
 
 
-def write(path, title, description, body, nav=True):
+def hours(p, w):
+    return p["watt_hours"] * EFF / w if w <= p["output_watts"] else None
+
+
+def fmt_h(h):
+    if h is None: return "Too much"
+    if h < 1: return f"{round(h * 60)} min"
+    if h < 20: return f"{h:.1f} hr"
+    return f"{round(h)} hr"
+
+
+def buy(p, label="Check price"):
+    return f'<a class="btn" href="{e(p["url"])}" rel="sponsored nofollow noopener" target="_blank">{label}</a>'
+
+
+LOGO = ('<svg class="mark" viewBox="0 0 28 28" aria-hidden="true"><rect x="2" y="6" width="21" height="16" rx="4" '
+        'fill="currentColor"/><rect x="24" y="11" width="3" height="6" rx="1.5" fill="currentColor"/>'
+        '<path d="M13.5 8.5 9.5 15h3.6l-1 4.5 4.4-6.6h-3.6z" fill="var(--bolt)"/></svg>')
+
+
+def write(path, title, description, body):
     d = OUT / path.strip("/")
     d.mkdir(parents=True, exist_ok=True)
-    links = "".join(f'<a href="/best/{c["slug"]}/">{e(c["short"])}</a>' for c in collections)
+    nav = "".join(f'<a href="/best/{c["slug"]}/">{e(c["short"])}</a>' for c in collections)
+    nav += '<a href="/how-we-rank/">How we rank</a>'
+    canon = f"{URL}/{path.strip('/')}/" if path.strip("/") else f"{URL}/"
     (d / "index.html").write_text(BASE.substitute(
-        title=e(title), description=e(description), canonical=f"{URL}/{path.strip('/')}/".replace("//", "/").replace(":/", "://"),
-        site_name=e(SITE), nav=links, body=body, updated=UPDATED))
+        title=e(title), description=e(description), canonical=canon, site_name=e(SITE),
+        logo=LOGO, nav=nav, body=body, updated=UPDATED, price_note=''))
     pages.append("/" + path.strip("/") + ("/" if path.strip("/") else ""))
 
 
@@ -50,29 +78,38 @@ def apply_filters(items, f):
 
 
 def sort_items(items, key):
-    rev = key.startswith("-")
-    return sorted(items, key=lambda p: p[key.lstrip("-")], reverse=rev)
+    return sorted(items, key=lambda p: p[key.lstrip("-")], reverse=key.startswith("-"))
 
 
 def table(items):
-    rows = "".join(
-        f'<tr><td><a href="/p/{p["slug"]}/">{e(p["brand"])} {e(p["name"])}</a></td>'
-        f'<td class="num">{p["watt_hours"]:,.0f}</td><td class="num">{p.get("output_watts", 0):,.0f}</td>'
-        f'<td class="num">{p.get("weight_lbs", 0):,.0f}</td><td class="num">{money(p["price"])}</td>'
-        f'<td class="num">{cents(p["price_per_wh"])}</td>'
-        f'<td><a class="btn" href="{e(p["url"])}" rel="sponsored nofollow noopener" target="_blank">Check price</a></td></tr>'
-        for p in items)
-    return ('<div class="scroll"><table><thead><tr><th>Model</th><th class="num">Capacity (Wh)</th>'
-            '<th class="num">Output (W)</th><th class="num">Weight (lb)</th><th class="num">Price</th>'
-            '<th class="num">Per Wh</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>')
+    rows = ""
+    for p in items:
+        pct = p["watt_hours"] / MAX_WH * 100
+        rows += (f'<tr><td><a class="model" href="/p/{p["id"]}/">{e(p["full"])}</a></td>'
+                 f'<td><span class="cap"><span class="meter sm"><span style="width:{pct:.0f}%"></span></span>'
+                 f'<b>{p["watt_hours"]:,.0f}</b> Wh</span></td>'
+                 f'<td class="num">{p["output_watts"]:,.0f} W</td><td class="num">{p["weight_lbs"]:g} lb</td>'
+                 f'<td class="num">{money(p["price"])}</td><td class="num">{cents(p["price_per_wh"])}</td>'
+                 f'<td>{buy(p)}</td></tr>')
+    return ('<div class="scroll"><table><thead><tr><th>Model</th><th>Capacity</th><th class="num">Output</th>'
+            '<th class="num">Weight</th><th class="num">List price</th><th class="num">Per Wh</th><th></th></tr></thead>'
+            f'<tbody>{rows}</tbody></table></div><p class="note">{e(PRICE_NOTE)}</p>')
 
 
-def flag():
-    return ('<p class="flag">Sample data. Replace data/products.json (or enable a feed in sources.json) before publishing.</p>'
-            if has_sample else "")
+def runtime_rows(w):
+    ranked = sorted(products, key=lambda p: -(hours(p, w) or -1))
+    top = max((hours(p, w) or 0) for p in products) or 1
+    out = ""
+    for p in ranked:
+        h = hours(p, w)
+        pct = (h / top * 100) if h else 0
+        out += (f'<li class="row{"" if h else " off"}"><a class="name" href="/p/{p["id"]}/">{e(p["full"])}</a>'
+                f'<span class="meter" role="img" aria-label="{fmt_h(h)}"><span style="width:{pct:.0f}%"></span></span>'
+                f'<b class="hrs">{fmt_h(h)}</b><span class="price">{money(p["price"])}</span>{buy(p, "See it")}</li>')
+    return out
 
 
-# collections: only build pages that have at least 2 products (avoid thin pages)
+# ---- collections (skip any with fewer than 2 products: thin pages don't rank)
 collections = []
 for c in cfg["collections"]:
     items = sort_items(apply_filters(products, c["filters"]), c["sort"])
@@ -80,7 +117,6 @@ for c in cfg["collections"]:
         print(f"skip collection {c['slug']}: only {len(items)} product(s)")
         continue
     c["items"] = items
-    c["short"] = c["title"].replace("Best portable power stations ", "").replace("for ", "").capitalize()
     collections.append(c)
 
 if OUT.exists():
@@ -88,58 +124,120 @@ if OUT.exists():
 OUT.mkdir()
 shutil.copytree(ROOT / "static", OUT, dirs_exist_ok=True)
 
-# home
-home_links = "".join(f'<li><a href="/best/{c["slug"]}/">{e(c["title"])}</a></li>' for c in collections)
-write("", f"{SITE}: portable power stations compared",
-      cfg["tagline"],
-      f'{flag()}<h1>{e(cfg["tagline"])}</h1>'
-      f'<p class="lede">Every model on one table, with price per watt-hour so capacity and cost are easy to weigh.</p>'
-      f'<h2>Shortlists</h2><ul class="links">{home_links}</ul>'
-      f'<h2>All models</h2>{table(sort_items(products, "price_per_wh"))}')
+flag = ('<p class="flag">Sample data. Replace data/products.json before publishing.</p>' if has_sample else "")
 
-# collections
+# ---- home
+chips = "".join(
+    f'<button type="button" class="chip" data-w="{w}" aria-pressed="{"true" if n == "Laptop" else "false"}">'
+    f'{n}<small>{w:,} W</small></button>' for n, w in DEVICES)
+data_json = json.dumps([{"id": p["id"], "name": p["full"], "wh": p["watt_hours"], "w": p["output_watts"],
+                         "price": p["price"], "url": p["url"]} for p in products]).replace("</", "<\\/")
+JS = """
+(function(){
+  var data = JSON.parse(document.getElementById('d').textContent), EFF = %EFF%;
+  var list = document.getElementById('rows'), chips = document.querySelectorAll('.chip'), custom = document.getElementById('custom');
+  function fmt(h){ if(h===null) return 'Too much'; if(h<1) return Math.round(h*60)+' min'; if(h<20) return h.toFixed(1)+' hr'; return Math.round(h)+' hr'; }
+  function render(w){
+    var rows = data.map(function(p){ return {p:p, h: w<=p.w ? p.wh*EFF/w : null}; });
+    rows.sort(function(a,b){ return (b.h||-1)-(a.h||-1); });
+    var top = Math.max.apply(null, rows.map(function(r){return r.h||0;})) || 1;
+    rows.forEach(function(r){
+      var li = document.getElementById('r-'+r.p.id);
+      li.classList.toggle('off', r.h===null);
+      li.querySelector('.meter span').style.width = (r.h? r.h/top*100 : 0)+'%';
+      li.querySelector('.meter').setAttribute('aria-label', fmt(r.h));
+      li.querySelector('.hrs').textContent = fmt(r.h);
+      list.appendChild(li);
+    });
+  }
+  chips.forEach(function(c){ c.addEventListener('click', function(){
+    chips.forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+    c.setAttribute('aria-pressed','true'); custom.value=''; render(+c.dataset.w); }); });
+  custom.addEventListener('input', function(){
+    var w = +custom.value; if(!(w>0)) return;
+    chips.forEach(function(x){ x.setAttribute('aria-pressed','false'); }); render(w); });
+})();
+""".replace("%EFF%", str(EFF))
+rows_html = runtime_rows(DEFAULT_W).replace('<li class="row', '<li class="row', 1)
+for p in products:  # give each row an id for the script
+    rows_html = rows_html.replace(f'<li class="row{"" }"><a class="name" href="/p/{p["id"]}/">',
+                                  f'<li id="r-{p["id"]}" class="row"><a class="name" href="/p/{p["id"]}/">')
+    rows_html = rows_html.replace(f'<li class="row off"><a class="name" href="/p/{p["id"]}/">',
+                                  f'<li id="r-{p["id"]}" class="row off"><a class="name" href="/p/{p["id"]}/">')
+tiles = "".join(f'<li><a href="/best/{c["slug"]}/"><b>{e(c["short"])}</b><span>{e(c["title"])}</span></a></li>'
+                for c in collections)
+write("", f"{SITE}: {cfg['tagline']}", cfg["description"],
+      f'{flag}<section class="hero"><h1>{e(cfg["tagline"])}</h1>'
+      f'<p class="lede">Pick something you would plug in. Every model below is ranked by how long it keeps it running.</p>'
+      f'<div class="chips" role="group" aria-label="Device">{chips}'
+      f'<label class="own">Your own<input id="custom" type="number" min="1" max="3000" inputmode="numeric" placeholder="watts"></label></div>'
+      f'<ol class="rows" id="rows">{rows_html}</ol>'
+      f'<p class="note">Estimates assume about {round((1 - EFF) * 100)}% conversion loss and steady draw. Real runtime varies with the device.</p></section>'
+      f'<h2>Or start from your situation</h2><ul class="tiles">{tiles}</ul>'
+      f'<h2>All {len(products)} models</h2>{table(sort_items(products, "price_per_wh"))}'
+      f'<script type="application/json" id="d">{data_json}</script><script>{JS}</script>')
+
+# ---- collections
 for c in collections:
     top = c["items"][0]
-    write(f"best/{c['slug']}", f"{c['title']} ({datetime.now().year})",
-          c["intro"][:155],
-          f'{flag()}<h1>{e(c["title"])}</h1><p class="lede">{e(c["intro"])}</p>{table(c["items"])}'
-          f'<h2>Lowest cost per watt-hour here</h2>'
-          f'<p>The {e(top["brand"])} {e(top["name"])} is {money(top["price"])} for {top["watt_hours"]:,.0f} Wh, '
-          f'or {cents(top["price_per_wh"])} per Wh.</p>')
+    label = {"price_per_wh": "lowest cost per watt-hour", "-watt_hours": "largest capacity"}.get(c["sort"], "top of the list")
+    write(f"best/{c['slug']}", f"{c['title']} ({datetime.now().year})", c["intro"][:155],
+          f'{flag}<h1>{e(c["title"])}</h1><p class="lede">{e(c["intro"])}</p>'
+          f'<div class="pick"><span class="tag">Top of this list</span><h2>{e(top["full"])}</h2>'
+          f'<p>{e(top["tagline"])} {money(top["price"])} list for {top["watt_hours"]:,.0f} Wh '
+          f'({cents(top["price_per_wh"])} per Wh), {label} here.</p>'
+          f'<p><a class="btn" href="/p/{top["id"]}/">Read the full specs</a> {buy(top, "Check price")}</p></div>'
+          f'<h2>Every match</h2>{table(c["items"])}')
 
-# products
+# ---- products
 for p in products:
-    hrs = lambda w: p["watt_hours"] * 0.85 / w  # ~15% conversion loss
-    specs = [("Capacity", f'{p["watt_hours"]:,.0f} Wh'), ("Continuous output", f'{p.get("output_watts", 0):,.0f} W'),
-             ("Weight", f'{p.get("weight_lbs", 0):,.0f} lb'), ("Battery chemistry", p.get("chemistry", "n/a")),
-             ("Max solar input", f'{p.get("solar_input_watts", 0):,.0f} W'), ("Price", money(p["price"])),
-             ("Price per Wh", cents(p["price_per_wh"]))]
-    spec_html = "".join(f"<tr><th>{e(k)}</th><td>{e(v)}</td></tr>" for k, v in specs)
-    related = [q for q in sort_items(products, "price_per_wh") if q["id"] != p["id"]][:3]
-    rel = "".join(f'<li><a href="/p/{q["slug"]}/">{e(q["brand"])} {e(q["name"])}</a></li>' for q in related)
-    name = f'{p["brand"]} {p["name"]}'
-    write(f"p/{p['slug']}", f"{name}: specs and price",
-          f'{name} stores {p["watt_hours"]:,.0f} Wh and outputs {p.get("output_watts", 0):,.0f} W for {money(p["price"])}.',
-          f'{flag()}<h1>{e(name)}</h1>'
-          f'<p class="lede">{p["watt_hours"]:,.0f} Wh, {p.get("output_watts", 0):,.0f} W output, {money(p["price"])}.</p>'
-          f'<p><a class="btn" href="{e(p["url"])}" rel="sponsored nofollow noopener" target="_blank">Check current price</a></p>'
-          f'<h2>Specs</h2><div class="scroll specs"><table style="min-width:0"><tbody>{spec_html}</tbody></table></div>'
-          f'<h2>What it can run</h2><p>At typical conversion losses, expect roughly {hrs(60):.0f} hours for a 60 W laptop '
-          f'or {hrs(100):.0f} hours for a 100 W TV. Heavier loads shorten that quickly, and anything above '
-          f'{p.get("output_watts", 0):,.0f} W will trip the inverter.</p>'
+    specs = [("Capacity", f'{p["watt_hours"]:,.0f} Wh'), ("Continuous output", f'{p["output_watts"]:,.0f} W'),
+             ("Weight", f'{p["weight_lbs"]:g} lb'), ("Battery", f'{p["chemistry"]}, {p["cycles"]:,} cycles'),
+             ("Wall recharge", p.get("ac_charge")),
+             ("Max solar input", f'{p["solar_input_watts"]:,} W' if p.get("solar_input_watts") else None),
+             ("List price", money(p["price"])), ("List price per Wh", cents(p["price_per_wh"]))]
+    spec_html = "".join(f"<tr><th>{e(k)}</th><td>{e(v)}</td></tr>" for k, v in specs if v)
+    run = "".join(f'<tr><th>{n} <small>{w:,} W</small></th><td class="num">{fmt_h(hours(p, w))}</td></tr>' for n, w in DEVICES)
+    pc = "".join(f"<li>{e(x)}</li>" for x in p["pros"])
+    cn = "".join(f"<li>{e(x)}</li>" for x in p["cons"])
+    others = [q for q in sort_items(products, "price_per_wh") if q["id"] != p["id"]]
+    rel = "".join(f'<li><a href="/p/{q["id"]}/">{e(q["full"])}</a> '
+                  f'<span>{q["watt_hours"]:,.0f} Wh, {money(q["price"])}</span></li>' for q in others)
+    pct = p["watt_hours"] / MAX_WH * 100
+    write(f"p/{p['id']}", f"{p['full']}: specs, runtime and price",
+          f'{p["full"]} stores {p["watt_hours"]:,.0f} Wh and outputs {p["output_watts"]:,.0f} W. List price {money(p["price"])}.',
+          f'{flag}<h1>{e(p["full"])}</h1><p class="lede">{e(p["tagline"])}</p>'
+          f'<div class="facts"><div><b>{p["watt_hours"]:,.0f}</b><span>Wh</span></div>'
+          f'<div><b>{p["output_watts"]:,.0f}</b><span>watts out</span></div>'
+          f'<div><b>{p["weight_lbs"]:g}</b><span>pounds</span></div>'
+          f'<div><b>{money(p["price"])}</b><span>list price</span></div></div>'
+          f'<span class="meter" role="img" aria-label="{pct:.0f}% of the largest battery here"><span style="width:{pct:.0f}%"></span></span>'
+          f'<p class="note">Battery size compared with the biggest model on this site.</p>'
+          f'<p>{buy(p, "Check current price")}</p>'
+          f'<div class="split"><div><h2>What we like</h2><ul class="pc yes">{pc}</ul></div>'
+          f'<div><h2>What to know</h2><ul class="pc no">{cn}</ul></div></div>'
+          f'<h2>How long it runs things</h2><div class="scroll small"><table><tbody>{run}</tbody></table></div>'
+          f'<p class="note">Estimates assume about {round((1 - EFF) * 100)}% conversion loss and steady draw. "Too much" means the device draws more than the {p["output_watts"]:,.0f} W output.</p>'
+          f'<h2>Specs</h2><div class="scroll small"><table><tbody>{spec_html}</tbody></table></div>'
           f'<h2>Compare with</h2><ul class="links">{rel}</ul>')
 
-# disclosure
+# ---- how we rank + disclosure
+write("how-we-rank", f"How we rank power stations | {SITE}", "How Wattwise sorts and compares portable power stations.",
+      f'<h1>How we rank</h1><p class="lede">Everything here is sorted by numbers you can check, not by who pays us.</p>'
+      f'<h2>What the numbers mean</h2><p><b>Runtime</b> is capacity in watt-hours, minus about {round((1 - EFF) * 100)}% for conversion losses, '
+      f'divided by the device\'s draw in watts. A station can only run a device if its output rating covers the draw.</p>'
+      f'<p><b>Per Wh</b> is list price divided by capacity. Lower means more stored energy per dollar.</p>'
+      f'<p><b>List price</b> is the manufacturer or reseller list price when we checked. Sale prices are common, so use the Check price button for today\'s number.</p>'
+      f'<h2>Where specs come from</h2><p>Capacity, output, weight and cycle ratings come from manufacturer and retailer spec sheets. '
+      f'We have not lab-tested these units, and we say so rather than imply otherwise.</p>'
+      f'<p>Prices and specs last checked {UPDATED}. Spot a mistake? Tell us and we will fix it.</p>')
+
 write("disclosure", f"Affiliate disclosure | {SITE}", "How this site earns money.",
       f'<h1>Affiliate disclosure</h1><p>{e(SITE)} is supported by affiliate commissions. When you click a link to a seller '
-      f'and make a purchase, we may earn a commission at no extra cost to you. Rankings and tables are sorted by the '
-      f'numbers shown (price, capacity, weight), not by commission rate.</p>'
-      f'<p>Prices and specs come from seller feeds and are refreshed automatically, so they can lag behind the seller\'s '
-      f'site. Check the final price before you buy.</p>')
+      f'and buy, we may earn a commission at no extra cost to you.</p>'
+      f'<p>Rankings are sorted by the numbers shown (capacity, runtime, weight, price per watt-hour), never by commission rate.</p>')
 
-# sitemap + robots
-(OUT / "sitemap.xml").write_text(
-    '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+(OUT / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     + "".join(f"<url><loc>{URL}{u}</loc></url>\n" for u in pages) + "</urlset>\n")
 (OUT / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {URL}/sitemap.xml\n")
 print(f"built {len(pages)} pages -> {OUT}")

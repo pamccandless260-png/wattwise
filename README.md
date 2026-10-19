@@ -3,7 +3,7 @@
 Auto-refreshing portable power station comparison site. Static HTML, standard-library Python, no dependencies.
 
 - `fetch.py` pulls product feeds listed in `sources.json` into `data/products.json`
-- `build.py` generates `dist/` (home, shortlists from `config.json`, product pages, disclosure, sitemap)
+- `build.py` generates `dist/`: home page with a runtime picker, shortlists from `config.json`, product pages, how-we-rank, disclosure, sitemap
 - `.github/workflows/refresh.yml` runs fetch + build daily and commits changed data
 - Netlify rebuilds on every commit (`netlify.toml`)
 

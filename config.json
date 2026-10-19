@@ -1,26 +1,30 @@
 {
   "site_name": "Wattwise",
-  "tagline": "Portable power stations, compared by what they actually cost per watt-hour.",
+  "tagline": "How long will a power station run your stuff?",
+  "description": "Portable power stations ranked by how long they run the things you actually plug in, with list price, weight and specs side by side.",
   "base_url": "https://YOUR-SITE.netlify.app",
   "collections": [
     {
       "slug": "best-under-500",
+      "short": "Under $500",
       "title": "Best portable power stations under $500",
-      "intro": "Budget stations trade capacity for price. These are the models under $500, sorted by cost per watt-hour so you can see which ones give you the most stored energy for the money.",
+      "intro": "Budget stations trade capacity for price. These are the models at or under $500 list price, sorted by cost per watt-hour so you can see which one gives you the most stored energy for your money.",
       "filters": {"max_price": 500},
       "sort": "price_per_wh"
     },
     {
       "slug": "best-for-camping",
+      "short": "Camping",
       "title": "Best portable power stations for camping",
-      "intro": "For weekend camping you want enough capacity for phones, lights and a small fridge without carrying a brick. Here are the lighter models, sorted by capacity.",
+      "intro": "For a weekend away you want enough capacity for phones, lights and a small fridge without hauling a brick. These models weigh 30 lb or less, sorted by capacity.",
       "filters": {"max_weight_lbs": 30},
       "sort": "-watt_hours"
     },
     {
       "slug": "best-for-home-backup",
+      "short": "Home backup",
       "title": "Best portable power stations for home backup",
-      "intro": "Home backup needs capacity and high output to run appliances through an outage. These models start at 1,000 Wh, sorted by cost per watt-hour.",
+      "intro": "Outage backup needs capacity and enough output to run a fridge, router and lights together. These models start at 1,000 Wh, sorted by cost per watt-hour.",
       "filters": {"min_wh": 1000},
       "sort": "price_per_wh"
     }
