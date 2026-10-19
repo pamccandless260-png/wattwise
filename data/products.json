@@ -1,0 +1,318 @@
+{
+  "updated": "2026-10-18T12:00:00+00:00",
+  "price_note": "List prices from manufacturer launch pricing or reseller listings, checked October 2026. Street prices change often and are frequently lower.",
+  "products": [
+    {
+      "id": "ecoflow-river-3-plus",
+      "brand": "EcoFlow",
+      "name": "River 3 Plus",
+      "tagline": "Pocket-size backup for phones, laptops and a router.",
+      "price": 299,
+      "watt_hours": 286,
+      "output_watts": 600,
+      "weight_lbs": 10.4,
+      "chemistry": "LiFePO4",
+      "cycles": 3000,
+      "solar_input_watts": 220,
+      "ac_charge": "About 1 hour (X-Stream)",
+      "pros": [
+        "Recharges in about an hour from a wall outlet",
+        "Expandable to 858 Wh with extra batteries",
+        "Under 11 lb with three AC outlets"
+      ],
+      "cons": [
+        "286 Wh is enough for a few laptop charges, not a fridge",
+        "600 W output rules out kettles and heaters"
+      ],
+      "url": "https://solartown.com/solar-products/portable-power-station/ecoflow-efriver3plus-us-river-3-plus-portable-power-station/"
+    },
+    {
+      "id": "bluetti-elite-30-v2",
+      "brand": "Bluetti",
+      "name": "Elite 30 V2",
+      "tagline": "Under 10 lb, with real AC outlets.",
+      "price": 299,
+      "watt_hours": 288,
+      "output_watts": 600,
+      "weight_lbs": 9.5,
+      "chemistry": "LiFePO4",
+      "cycles": 3000,
+      "solar_input_watts": 200,
+      "ac_charge": "0 to 80% in about 45 minutes",
+      "pros": [
+        "9.5 lb with AC outlets, so it runs a router, lights or a small fan",
+        "Up to 200 W of solar input is generous at this size",
+        "Charges to 80% in about 45 minutes"
+      ],
+      "cons": [
+        "288 Wh covers only a few laptop charges",
+        "No battery expansion, and the solar cable is sold separately"
+      ],
+      "url": "https://www.bestbuy.com/product/bluetti-600w-continuous-1500w-peak-output-power-station-288wh-push-button-start-lifepo4-battery-solar-generator-for-outdoors-light-sand-grey/JJ8QQSL8TH"
+    },
+    {
+      "id": "anker-solix-c300x-dc",
+      "brand": "Anker",
+      "name": "SOLIX C300X DC",
+      "tagline": "A big power bank: USB-C and DC only, no AC outlets.",
+      "ac": false,
+      "price": 249.99,
+      "watt_hours": 288,
+      "output_watts": 300,
+      "weight_lbs": 6.4,
+      "chemistry": "LiFePO4",
+      "cycles": 3000,
+      "solar_input_watts": 110,
+      "ac_charge": "80% in about 1 hour over USB-C",
+      "pros": [
+        "Lightest model here at 6.4 lb",
+        "Two 140 W two-way USB-C ports charge laptops quickly",
+        "Built-in pop-out light"
+      ],
+      "cons": [
+        "No AC outlets, so it can't run a TV, fridge or kettle",
+        "Output is capped at 300 W"
+      ],
+      "url": "https://outboundpower.com/products/anker-solix-c300x-dc-portable-power-station"
+    },
+    {
+      "id": "anker-solix-c800-plus",
+      "brand": "Anker",
+      "name": "SOLIX C800 Plus",
+      "tagline": "A camping-minded 768 Wh with two detachable lights.",
+      "price": 649.99,
+      "watt_hours": 768,
+      "output_watts": 1200,
+      "weight_lbs": 24,
+      "chemistry": "LiFePO4",
+      "cycles": 3000,
+      "solar_input_watts": 300,
+      "ac_charge": "About 58 minutes",
+      "pros": [
+        "Two detachable camping lights are included",
+        "Recharges in about 58 minutes",
+        "SurgePad covers loads up to 1,600 W"
+      ],
+      "cons": [
+        "768 Wh is less than the 1 kWh models at a similar weight",
+        "Rated for 3,000 cycles versus 4,000 on Anker's C1000 Gen 2"
+      ],
+      "url": "https://www.ankersolix.com/products/c800-plus"
+    },
+    {
+      "id": "ecoflow-delta-2",
+      "brand": "EcoFlow",
+      "name": "Delta 2",
+      "tagline": "The expandable one: grow it to 3,040 Wh with extra batteries.",
+      "price": 999,
+      "watt_hours": 1024,
+      "output_watts": 1800,
+      "weight_lbs": 27,
+      "chemistry": "LiFePO4",
+      "cycles": 3000,
+      "solar_input_watts": 500,
+      "ac_charge": "0 to 80% in about 50 minutes",
+      "pros": [
+        "Add a Delta 2 or Delta Max battery to reach 2,048 or 3,040 Wh",
+        "Up to 500 W of solar input",
+        "Four AC outlets at 1,800 W total"
+      ],
+      "cons": [
+        "At 27 lb, heavier than the Jackery, Anker and Bluetti 1 kWh models",
+        "Older 2022 design, rated for 3,000 cycles versus 4,000 on the newer 1 kWh models"
+      ],
+      "url": "https://outboundpower.com/products/ecoflow-delta-2-portable-power-station"
+    },
+    {
+      "id": "anker-solix-c1000-gen-2",
+      "brand": "Anker",
+      "name": "SOLIX C1000 Gen 2",
+      "tagline": "2,000 W output and a 49-minute recharge.",
+      "price": 799,
+      "watt_hours": 1024,
+      "output_watts": 2000,
+      "weight_lbs": 24.9,
+      "chemistry": "LiFePO4",
+      "cycles": 4000,
+      "solar_input_watts": 600,
+      "ac_charge": "49 minutes with app UltraFast mode",
+      "pros": [
+        "Most output of the group at 2,000 W",
+        "Full recharge in 49 minutes at 1,600 W",
+        "UPS switchover under 10 ms and 4,000 cycles"
+      ],
+      "cons": [
+        "Top charging speed has to be enabled in the Anker app",
+        "Costs more per watt-hour than the Jackery"
+      ],
+      "url": "https://www.bhphotovideo.com/c/product/1929018-REG/anker_a17631a1_solix_c1000_gen_2.html"
+    },
+    {
+      "id": "ecoflow-delta-3-plus",
+      "brand": "EcoFlow",
+      "name": "Delta 3 Plus",
+      "tagline": "The Delta 2 successor, with two solar inputs and a quicker recharge.",
+      "price": 799,
+      "watt_hours": 1024,
+      "output_watts": 1800,
+      "weight_lbs": 27.6,
+      "chemistry": "LiFePO4",
+      "cycles": 4000,
+      "solar_input_watts": 1000,
+      "ac_charge": "0 to 100% in about 56 minutes",
+      "pros": [
+        "Takes up to 1,000 W of solar through two inputs",
+        "Expands to 5 kWh with compatible EcoFlow batteries",
+        "UPS switchover under 10 ms"
+      ],
+      "cons": [
+        "At 27.6 lb, heavier than the Jackery, Anker and Bluetti 1 kWh models",
+        "List price is $300 above the Bluetti Elite 100 V2"
+      ],
+      "url": "https://outboundpower.com/products/ecoflow-delta-3-plus-portable-power-station-1024wh-1800w-500w-solar-input"
+    },
+    {
+      "id": "bluetti-elite-100-v2",
+      "brand": "Bluetti",
+      "name": "Elite 100 V2",
+      "tagline": "A 25 lb, 1 kWh station at a budget price.",
+      "price": 499,
+      "watt_hours": 1024,
+      "output_watts": 1800,
+      "weight_lbs": 25,
+      "chemistry": "LiFePO4",
+      "cycles": 4000,
+      "solar_input_watts": 1000,
+      "ac_charge": "0 to 80% in about 45 minutes",
+      "pros": [
+        "1,800 W output at a $499 list price",
+        "Charges to 80% in about 45 minutes",
+        "Takes up to 1,000 W of solar input"
+      ],
+      "cons": [
+        "1,024 Wh drains quickly under high-draw loads, as TechRadar noted",
+        "Not waterproof, according to Bluetti"
+      ],
+      "url": "https://www.bluettipower.com/products/elite-100-v2-portable-power-station"
+    },
+    {
+      "id": "jackery-explorer-1000-v2",
+      "brand": "Jackery",
+      "name": "Explorer 1000 v2",
+      "tagline": "A 1 kWh station that stays under 24 lb.",
+      "price": 499,
+      "watt_hours": 1070,
+      "output_watts": 1500,
+      "weight_lbs": 23.8,
+      "chemistry": "LiFePO4",
+      "cycles": 4000,
+      "ac_charge": "About 1 hour with app emergency mode",
+      "pros": [
+        "Lightest of the 1 kWh models here",
+        "4,000-cycle LiFePO4 battery",
+        "UPS function keeps a fridge or router running through outages"
+      ],
+      "cons": [
+        "1,500 W output is the lowest of the 1 kWh group",
+        "Fast charging has to be switched on in the app"
+      ],
+      "url": "https://outboundpower.com/products/jackery-explorer-1000-v2-portable-power-station"
+    },
+    {
+      "id": "jackery-explorer-2000-plus",
+      "brand": "Jackery",
+      "name": "Explorer 2000 Plus",
+      "tagline": "2 kWh and 3,000 W, expandable up to 12 kWh.",
+      "price": 1299,
+      "watt_hours": 2043,
+      "output_watts": 3000,
+      "weight_lbs": 61.5,
+      "chemistry": "LiFePO4",
+      "cycles": 4000,
+      "solar_input_watts": 1400,
+      "ac_charge": "About 2 hours",
+      "pros": [
+        "3,000 W continuous with 6,000 W surge",
+        "Add up to five battery packs to reach 12 kWh",
+        "Two units can be paralleled for 6 kW"
+      ],
+      "cons": [
+        "At 61.5 lb, the heaviest of the 2 kWh models",
+        "Jackery has since released a 2000 v2"
+      ],
+      "url": "https://www.mrsolar.com/jackery-explorer-2000-plus-portable-power-station/"
+    },
+    {
+      "id": "anker-solix-c2000-gen-2",
+      "brand": "Anker",
+      "name": "SOLIX C2000 Gen 2",
+      "tagline": "2 kWh at 41.7 lb, expandable to 4 kWh.",
+      "price": 1499,
+      "watt_hours": 2048,
+      "output_watts": 2400,
+      "weight_lbs": 41.7,
+      "chemistry": "LiFePO4",
+      "cycles": 4000,
+      "solar_input_watts": 800,
+      "ac_charge": "100% in about 58 minutes",
+      "pros": [
+        "2,400 W output with four 20 A outlets and a TT-30 for RVs",
+        "Expands to 4,096 Wh with the BP2000 battery",
+        "4,000-cycle battery and under-10 ms UPS switchover"
+      ],
+      "cons": [
+        "41.7 lb is a real lift to carry far",
+        "The expansion battery is sold separately"
+      ],
+      "url": "https://backwoodssolar.com/products/anker-solix-c2000-gen-2-power-station-2048wh-2400w"
+    },
+    {
+      "id": "bluetti-elite-200-v2",
+      "brand": "Bluetti",
+      "name": "Elite 200 V2",
+      "tagline": "2 kWh and 2,600 W with a 6,000-cycle battery.",
+      "price": 1999,
+      "watt_hours": 2074,
+      "output_watts": 2600,
+      "weight_lbs": 53.4,
+      "chemistry": "LiFePO4",
+      "cycles": 6000,
+      "solar_input_watts": 1000,
+      "ac_charge": "0 to 80% in about 1.1 hours (TurboBoost)",
+      "pros": [
+        "6,000 rated cycles, the most here",
+        "2,600 W output, up to 3,900 W in power-lifting mode",
+        "Charges to 80% in about 1.1 hours"
+      ],
+      "cons": [
+        "At 53.4 lb, 12 lb heavier than Anker's C2000 Gen 2",
+        "Launched at $1,099 and has been discounted since, so the list price here is high"
+      ],
+      "url": "https://www.bluettipower.com/products/solar-generator-elite-200-v2"
+    },
+    {
+      "id": "ecoflow-delta-pro-3",
+      "brand": "EcoFlow",
+      "name": "Delta Pro 3",
+      "tagline": "4 kWh and 4,000 W for backing up a home's essentials.",
+      "price": 3699,
+      "watt_hours": 4096,
+      "output_watts": 4000,
+      "weight_lbs": 113.5,
+      "chemistry": "LiFePO4",
+      "cycles": 4000,
+      "solar_input_watts": 2600,
+      "ac_charge": "0 to 80% in about 50 minutes",
+      "pros": [
+        "4,000 W output at 120 or 240 V",
+        "Expands to 12 kWh with two extra batteries",
+        "Takes up to 2,600 W of solar input"
+      ],
+      "cons": [
+        "At 113.5 lb, you will want the wheels and handle",
+        "List price is several times that of a 1 kWh station"
+      ],
+      "url": "https://offgridstores.com/collections/all/products/ecoflow-delta-pro-3-portable-power-station"
+    }
+  ]
+}
