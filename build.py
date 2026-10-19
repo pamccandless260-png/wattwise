@@ -22,8 +22,8 @@ MAX_WH = max(p["watt_hours"] for p in products)
 has_sample = any(p.get("sample") for p in products)
 
 # typical average draw in watts
-DEVICES = [("Wi-Fi router", 10), ("LED lights", 20), ("Laptop", 60), ("Mini fridge", 60),
-           ("TV", 100), ("Power drill", 600), ("Kettle", 1500)]
+DEVICES = [("Wi-Fi router", 10, True), ("LED lights", 20, True), ("Laptop", 60, True), ("Mini fridge", 60, False),
+           ("TV", 100, False), ("Power drill", 600, False), ("Kettle", 1500, False)]
 DEFAULT_W = 60
 EFF = 0.85  # rough inverter and conversion losses
 
@@ -33,12 +33,14 @@ cents = lambda x: f"${x:,.2f}"
 pages = []
 
 
-def hours(p, w):
+def hours(p, w, dc=False):
+    if not p.get("ac", True) and not dc:
+        return None  # needs an AC outlet this station doesn't have
     return p["watt_hours"] * EFF / w if w <= p["output_watts"] else None
 
 
 def fmt_h(h):
-    if h is None: return "Too much"
+    if h is None: return "Can't run"
     if h < 1: return f"{round(h * 60)} min"
     if h < 20: return f"{h:.1f} hr"
     return f"{round(h)} hr"
@@ -96,14 +98,17 @@ def table(items):
             f'<tbody>{rows}</tbody></table></div><p class="note">{e(PRICE_NOTE)}</p>')
 
 
-def runtime_rows(w):
-    ranked = sorted(products, key=lambda p: -(hours(p, w) or -1))
-    top = max((hours(p, w) or 0) for p in products) or 1
+SHOW = 8
+
+
+def runtime_rows(w, dc=False):
+    ranked = sorted(products, key=lambda p: -(hours(p, w, dc) or -1))
+    top = max((hours(p, w, dc) or 0) for p in products) or 1
     out = ""
-    for p in ranked:
-        h = hours(p, w)
+    for i, p in enumerate(ranked):
+        h = hours(p, w, dc)
         pct = (h / top * 100) if h else 0
-        out += (f'<li class="row{"" if h else " off"}"><a class="name" href="/p/{p["id"]}/">{e(p["full"])}</a>'
+        out += (f'<li id="r-{p["id"]}" class="row{"" if h else " off"}"{" hidden" if i >= SHOW else ""}><a class="name" href="/p/{p["id"]}/">{e(p["full"])}</a>'
                 f'<span class="meter" role="img" aria-label="{fmt_h(h)}"><span style="width:{pct:.0f}%"></span></span>'
                 f'<b class="hrs">{fmt_h(h)}</b><span class="price">{money(p["price"])}</span>{buy(p, "See it")}</li>')
     return out
@@ -128,42 +133,44 @@ flag = ('<p class="flag">Sample data. Replace data/products.json before publishi
 
 # ---- home
 chips = "".join(
-    f'<button type="button" class="chip" data-w="{w}" aria-pressed="{"true" if n == "Laptop" else "false"}">'
-    f'{n}<small>{w:,} W</small></button>' for n, w in DEVICES)
+    f'<button type="button" class="chip" data-w="{w}" data-dc="{int(dc)}" aria-pressed="{"true" if n == "Laptop" else "false"}">'
+    f'{n}<small>{w:,} W</small></button>' for n, w, dc in DEVICES)
 data_json = json.dumps([{"id": p["id"], "name": p["full"], "wh": p["watt_hours"], "w": p["output_watts"],
-                         "price": p["price"], "url": p["url"]} for p in products]).replace("</", "<\\/")
+                         "price": p["price"], "ac": p.get("ac", True)} for p in products]).replace("</", "<\\/")
 JS = """
 (function(){
-  var data = JSON.parse(document.getElementById('d').textContent), EFF = %EFF%;
+  var data = JSON.parse(document.getElementById('d').textContent), EFF = %EFF%, SHOW = %SHOW%, expanded = false, cur = [%DEF%, true];
   var list = document.getElementById('rows'), chips = document.querySelectorAll('.chip'), custom = document.getElementById('custom');
-  function fmt(h){ if(h===null) return 'Too much'; if(h<1) return Math.round(h*60)+' min'; if(h<20) return h.toFixed(1)+' hr'; return Math.round(h)+' hr'; }
-  function render(w){
-    var rows = data.map(function(p){ return {p:p, h: w<=p.w ? p.wh*EFF/w : null}; });
+  var more = document.getElementById('more');
+  function fmt(h){ if(h===null) return "Can't run"; if(h<1) return Math.round(h*60)+' min'; if(h<20) return h.toFixed(1)+' hr'; return Math.round(h)+' hr'; }
+  function render(w, dc){
+    cur = [w, dc];
+    var rows = data.map(function(p){ return {p:p, h: ((p.ac||dc) && w<=p.w) ? p.wh*EFF/w : null}; });
     rows.sort(function(a,b){ return (b.h||-1)-(a.h||-1); });
     var top = Math.max.apply(null, rows.map(function(r){return r.h||0;})) || 1;
-    rows.forEach(function(r){
+    rows.forEach(function(r, i){
       var li = document.getElementById('r-'+r.p.id);
       li.classList.toggle('off', r.h===null);
       li.querySelector('.meter span').style.width = (r.h? r.h/top*100 : 0)+'%';
       li.querySelector('.meter').setAttribute('aria-label', fmt(r.h));
       li.querySelector('.hrs').textContent = fmt(r.h);
+      li.hidden = !expanded && i >= SHOW;
       list.appendChild(li);
     });
   }
   chips.forEach(function(c){ c.addEventListener('click', function(){
     chips.forEach(function(x){ x.setAttribute('aria-pressed','false'); });
-    c.setAttribute('aria-pressed','true'); custom.value=''; render(+c.dataset.w); }); });
+    c.setAttribute('aria-pressed','true'); custom.value=''; render(+c.dataset.w, c.dataset.dc==='1'); }); });
   custom.addEventListener('input', function(){
     var w = +custom.value; if(!(w>0)) return;
-    chips.forEach(function(x){ x.setAttribute('aria-pressed','false'); }); render(w); });
+    chips.forEach(function(x){ x.setAttribute('aria-pressed','false'); }); render(w, false); });
+  if(more){ more.addEventListener('click', function(){
+    expanded = !expanded; more.textContent = expanded ? 'Show fewer' : 'Show all '+data.length+' models';
+    more.setAttribute('aria-expanded', expanded); render(cur[0], cur[1]); }); }
 })();
-""".replace("%EFF%", str(EFF))
-rows_html = runtime_rows(DEFAULT_W).replace('<li class="row', '<li class="row', 1)
-for p in products:  # give each row an id for the script
-    rows_html = rows_html.replace(f'<li class="row{"" }"><a class="name" href="/p/{p["id"]}/">',
-                                  f'<li id="r-{p["id"]}" class="row"><a class="name" href="/p/{p["id"]}/">')
-    rows_html = rows_html.replace(f'<li class="row off"><a class="name" href="/p/{p["id"]}/">',
-                                  f'<li id="r-{p["id"]}" class="row off"><a class="name" href="/p/{p["id"]}/">')
+""".replace("%EFF%", str(EFF)).replace("%SHOW%", str(SHOW)).replace("%DEF%", str(DEFAULT_W))
+
+rows_html = runtime_rows(DEFAULT_W, True)
 tiles = "".join(f'<li><a href="/best/{c["slug"]}/"><b>{e(c["short"])}</b><span>{e(c["title"])}</span></a></li>'
                 for c in collections)
 write("", f"{SITE}: {cfg['tagline']}", cfg["description"],
@@ -172,6 +179,7 @@ write("", f"{SITE}: {cfg['tagline']}", cfg["description"],
       f'<div class="chips" role="group" aria-label="Device">{chips}'
       f'<label class="own">Your own<input id="custom" type="number" min="1" max="3000" inputmode="numeric" placeholder="watts"></label></div>'
       f'<ol class="rows" id="rows">{rows_html}</ol>'
+      f'<p><button type="button" class="more" id="more" aria-expanded="false">Show all {len(products)} models</button></p>'
       f'<p class="note">Estimates assume about {round((1 - EFF) * 100)}% conversion loss and steady draw. Real runtime varies with the device.</p></section>'
       f'<h2>Or start from your situation</h2><ul class="tiles">{tiles}</ul>'
       f'<h2>All {len(products)} models</h2>{table(sort_items(products, "price_per_wh"))}'
@@ -197,10 +205,10 @@ for p in products:
              ("Max solar input", f'{p["solar_input_watts"]:,} W' if p.get("solar_input_watts") else None),
              ("List price", money(p["price"])), ("List price per Wh", cents(p["price_per_wh"]))]
     spec_html = "".join(f"<tr><th>{e(k)}</th><td>{e(v)}</td></tr>" for k, v in specs if v)
-    run = "".join(f'<tr><th>{n} <small>{w:,} W</small></th><td class="num">{fmt_h(hours(p, w))}</td></tr>' for n, w in DEVICES)
+    run = "".join(f'<tr><th>{n} <small>{w:,} W</small></th><td class="num">{fmt_h(hours(p, w, dc))}</td></tr>' for n, w, dc in DEVICES)
     pc = "".join(f"<li>{e(x)}</li>" for x in p["pros"])
     cn = "".join(f"<li>{e(x)}</li>" for x in p["cons"])
-    others = [q for q in sort_items(products, "price_per_wh") if q["id"] != p["id"]]
+    others = sorted((q for q in products if q["id"] != p["id"]), key=lambda q: abs(q["watt_hours"] - p["watt_hours"]))[:4]
     rel = "".join(f'<li><a href="/p/{q["id"]}/">{e(q["full"])}</a> '
                   f'<span>{q["watt_hours"]:,.0f} Wh, {money(q["price"])}</span></li>' for q in others)
     pct = p["watt_hours"] / MAX_WH * 100
@@ -217,7 +225,7 @@ for p in products:
           f'<div class="split"><div><h2>What we like</h2><ul class="pc yes">{pc}</ul></div>'
           f'<div><h2>What to know</h2><ul class="pc no">{cn}</ul></div></div>'
           f'<h2>How long it runs things</h2><div class="scroll small"><table><tbody>{run}</tbody></table></div>'
-          f'<p class="note">Estimates assume about {round((1 - EFF) * 100)}% conversion loss and steady draw. "Too much" means the device draws more than the {p["output_watts"]:,.0f} W output.</p>'
+          f'<p class="note">Estimates assume about {round((1 - EFF) * 100)}% conversion loss and steady draw. "Can\'t run" means the device draws more than the {p["output_watts"]:,.0f} W output or needs an AC outlet this model lacks.</p>'
           f'<h2>Specs</h2><div class="scroll small"><table><tbody>{spec_html}</tbody></table></div>'
           f'<h2>Compare with</h2><ul class="links">{rel}</ul>')
 

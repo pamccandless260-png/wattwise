@@ -9,7 +9,9 @@
       "short": "Under $500",
       "title": "Best portable power stations under $500",
       "intro": "Budget stations trade capacity for price. These are the models at or under $500 list price, sorted by cost per watt-hour so you can see which one gives you the most stored energy for your money.",
-      "filters": {"max_price": 500},
+      "filters": {
+        "max_price": 500
+      },
       "sort": "price_per_wh"
     },
     {
@@ -17,7 +19,9 @@
       "short": "Camping",
       "title": "Best portable power stations for camping",
       "intro": "For a weekend away you want enough capacity for phones, lights and a small fridge without hauling a brick. These models weigh 30 lb or less, sorted by capacity.",
-      "filters": {"max_weight_lbs": 30},
+      "filters": {
+        "max_weight_lbs": 30
+      },
       "sort": "-watt_hours"
     },
     {
@@ -25,7 +29,29 @@
       "short": "Home backup",
       "title": "Best portable power stations for home backup",
       "intro": "Outage backup needs capacity and enough output to run a fridge, router and lights together. These models start at 1,000 Wh, sorted by cost per watt-hour.",
-      "filters": {"min_wh": 1000},
+      "filters": {
+        "min_wh": 1000
+      },
+      "sort": "price_per_wh"
+    },
+    {
+      "slug": "best-lightweight",
+      "short": "Lightweight",
+      "title": "Best lightweight portable power stations",
+      "intro": "Every model here weighs 12 lb or less, so it fits in a pack or under a seat. Sorted by capacity, so you can see how much energy each one gives up for the weight.",
+      "filters": {
+        "max_weight_lbs": 12
+      },
+      "sort": "-watt_hours"
+    },
+    {
+      "slug": "best-2000wh-and-up",
+      "short": "2 kWh and up",
+      "title": "Best high-capacity portable power stations (2,000 Wh and up)",
+      "intro": "For multi-day outages, RVs and off-grid cabins. These stations store 2,000 Wh or more, sorted by cost per watt-hour. Expect to carry them with two hands or use the wheels.",
+      "filters": {
+        "min_wh": 2000
+      },
       "sort": "price_per_wh"
     }
   ]
