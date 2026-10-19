@@ -2,7 +2,7 @@
   "site_name": "Wattwise",
   "tagline": "How long will a power station run your stuff?",
   "description": "Portable power stations ranked by how long they run the things you actually plug in, with list price, weight and specs side by side.",
-  "base_url": "https://YOUR-SITE.netlify.app",
+  "base_url": "https://wattwiseshop.netlify.app",
   "collections": [
     {
       "slug": "best-under-500",
